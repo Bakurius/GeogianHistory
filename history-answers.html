@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია — სწორი პასუხები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans Georgian', sans-serif; }
+        body { background: linear-gradient(160deg,#eef5ff 0%,#f7fbff 45%,#f4f8f6 100%); color: #25303b; min-height: 100vh; padding: 24px; }
+        .container { width: 100%; max-width: 980px; margin: 0 auto; background: #fff; border-radius: 14px; box-shadow: 0 14px 28px rgba(20,40,65,0.09); overflow: hidden; }
+        /* Header */
+        .header { padding: 24px; border-bottom: 1px solid #e4ebf4; background: linear-gradient(130deg,#dff0ff 0%,#ebf6ff 60%,#f3fafc 100%); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+        .header h1 { font-size: 1.45rem; color: #11365a; }
+        .header p  { color: #34536d; line-height: 1.45; font-size: 0.95rem; }
+        .header-tools { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+        .search-input { flex: 1 1 280px; min-width: 0; border: 1px solid #cfe0ef; border-radius: 10px; padding: 11px 14px; font-size: 0.97rem; color: #12395f; background: #fff; }
+        .search-input:focus { outline: 3px solid rgba(43,127,197,0.18); border-color: #2b7fc5; }
+        .nav-btn { display: inline-block; text-decoration: none; background: #2b7fc5; color: #fff; border-radius: 8px; padding: 9px 14px; font-size: 0.9rem; font-weight: 700; transition: background 0.2s; white-space: nowrap; }
+        .nav-btn:hover { background: #1f689f; }
+        .meta-row { margin-top: 10px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: #3d5a72; font-size: 0.9rem; }
+        /* Filters */
+        .filters { display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid #edf2f8; }
+        .filter-btn { border: 2px solid #cde0ef; border-radius: 20px; padding: 6px 14px; font-size: 0.86rem; font-weight: 700; cursor: pointer; background: #fff; color: #3d5a72; font-family: 'Noto Sans Georgian', sans-serif; transition: all 0.18s; }
+        .filter-btn.active, .filter-btn:hover { background: #2b7fc5; color: #fff; border-color: #2b7fc5; }
+        /* Content */
+        .content { padding: 20px; }
+        .summary { margin-bottom: 14px; font-weight: 600; color: #20405e; font-size: 0.93rem; }
+        /* Cards */
+        .question-card { border: 1px solid #deebf7; border-left: 5px solid #2b7fc5; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; background: #fcfeff; }
+        .question-card.type-fill  { border-left-color: #f39c12; }
+        .question-card.hidden-match { display: none; }
+        .type-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+        .tag-mcq  { background: #e3f0ff; color: #1a5276; }
+        .tag-fill { background: #fff3cd; color: #8d4a00; }
+        .question-title { font-weight: 700; margin-bottom: 10px; line-height: 1.45; color: #12395f; font-size: 0.97rem; }
+        /* MCQ answer */
+        .answer-text { background: #e8f5e9; border-left: 4px solid #28a745; border-radius: 6px; padding: 9px 12px; color: #155724; font-weight: 600; line-height: 1.5; }
+        /* Fill rendered */
+        .fill-rendered { font-size: 1rem; line-height: 2.6; color: #1a2a3a; }
+        .fill-chip { display: inline-block; background: #28a745; color: #fff; border-radius: 5px; padding: 1px 9px; font-weight: 700; font-size: 0.93rem; margin: 0 2px; vertical-align: middle; }
+        .empty-state { border: 1px dashed #c9d9e8; border-radius: 10px; background: #fbfdff; color: #5a7287; padding: 20px; text-align: center; font-weight: 600; }
+        @media (max-width: 700px) {
+            body { padding: 10px; }
+            .header, .content { padding: 14px; }
+            .header h1 { font-size: 1.18rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="header-top">
+            <h1>სწორი პასუხები — ისტორია</h1>
+        </div>
+        <p>ყველა კითხვის სწორი პასუხი ერთ ადგილას. <strong style="color:#1a5276;">MCQ</strong> კითხვებზე ნაჩვენებია სწორი ვარიანტი; <strong style="color:#8d4a00;">Fill</strong> კითხვებზე — ჩასაწერი სიტყვები.</p>
+        <div class="header-tools">
+            <input class="search-input" id="searchInput" type="search" placeholder="მოძებნე კითხვა ან პასუხი...">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <a class="nav-btn" href="history-tests.html">ჯგუფები</a>
+                <a class="nav-btn" href="history.html">ტესტი</a>
+            </div>
+        </div>
+        <div class="meta-row">
+            <span id="matchCount">იტვირთება...</span>
+            <span>ფილტრება კითხვის ტექსტითა და პასუხებით</span>
+        </div>
+    </div>
+
+    <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('all',this)">ყველა</button>
+        <button class="filter-btn" onclick="setFilter('mcq',this)">❓ MCQ</button>
+        <button class="filter-btn" onclick="setFilter('fill',this)">✏️ Fill</button>
+    </div>
+
+    <div class="content">
+        <p class="summary" id="summary"></p>
+        <div id="answerList"></div>
+    </div>
+</div>
+
+<script>
+    let cards = [], activeQuery = '', activeFilter = 'all';
+
+    fetch('history.json')
+        .then(r => r.json())
+        .then(render)
+        .catch(() => {
+            document.getElementById('answerList').innerHTML = '<div class="empty-state">history.json ვერ ჩაიტვირთა.</div>';
+        });
+
+    function render(questions) {
+        const list = document.getElementById('answerList');
+        list.innerHTML = ''; cards = [];
+        document.getElementById('summary').textContent = `სულ კითხვები: ${questions.length}`;
+
+        questions.forEach((q, idx) => {
+            const card = document.createElement('article');
+            const vtype = q.type === 'fill' ? 'fill' : 'mcq';
+            card.className = `question-card type-${vtype}`;
+
+            // Tag
+            const tag = document.createElement('span');
+            tag.className = `type-tag ${vtype==='fill'?'tag-fill':'tag-mcq'}`;
+            tag.textContent = vtype==='fill' ? '✏️ Fill — ჩაწერე' : '❓ MCQ — ამოარჩიე';
+            card.appendChild(tag);
+
+            // Title
+            const title = document.createElement('div');
+            title.className = 'question-title';
+
+            let searchParts = [];
+
+            if (q.type === 'fill') {
+                title.textContent = `${idx+1}. (შევსების კითხვა)`;
+                searchParts.push(q.template, q.blanks.join(' '));
+
+                const fillDiv = document.createElement('div');
+                fillDiv.className = 'fill-rendered';
+                const parts = q.template.split('___');
+                parts.forEach((part, i) => {
+                    if (part) fillDiv.appendChild(document.createTextNode(part));
+                    if (i < q.blanks.length) {
+                        const chip = document.createElement('span');
+                        chip.className = 'fill-chip';
+                        chip.textContent = q.blanks[i];
+                        fillDiv.appendChild(chip);
+                    }
+                });
+                card.appendChild(title);
+                card.appendChild(fillDiv);
+            } else {
+                title.textContent = `${idx+1}. ${q.question}`;
+                const correctOpts = q.options.filter(o => o.is_correct);
+                searchParts.push(q.question, ...correctOpts.map(o=>o.text));
+
+                card.appendChild(title);
+                correctOpts.forEach(opt => {
+                    const ans = document.createElement('div');
+                    ans.className = 'answer-text';
+                    ans.textContent = opt.text;
+                    card.appendChild(ans);
+                });
+            }
+
+            card.dataset.searchText = searchParts.join(' ').toLowerCase();
+            card.dataset.type = vtype;
+            list.appendChild(card);
+            cards.push(card);
+        });
+
+        applyFilters();
+    }
+
+    function setFilter(f, btn) {
+        activeFilter = f;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const q = activeQuery.trim().toLowerCase();
+        let visible = 0;
+        cards.forEach(card => {
+            const show = (!q || card.dataset.searchText.includes(q)) && (activeFilter==='all' || card.dataset.type===activeFilter);
+            card.classList.toggle('hidden-match', !show);
+            if (show) visible++;
+        });
+        document.getElementById('matchCount').textContent = `ნაჩვენებია: ${visible} / ${cards.length}`;
+        const ex = document.getElementById('emptyState');
+        if (visible===0) {
+            if (!ex) { const el=document.createElement('div'); el.className='empty-state'; el.id='emptyState'; el.textContent='ძიებასთან შესაბამისი კითხვა ვერ მოიძებნა.'; document.getElementById('answerList').appendChild(el); }
+        } else if (ex) { ex.remove(); }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', e => { activeQuery=e.target.value; applyFilters(); });
+</script>
+</body>
+</html>

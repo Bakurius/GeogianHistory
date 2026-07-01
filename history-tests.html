@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია - ჯგუფები</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans Georgian', sans-serif; }
+        body { background: linear-gradient(160deg,#eef5ff 0%,#f7fbff 45%,#f4f8f6 100%); color: #25303b; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 980px; margin: 0 auto; background: #fff; border-radius: 14px; box-shadow: 0 14px 28px rgba(20,40,65,0.09); overflow: hidden; }
+        /* Header */
+        .header { padding: 22px; border-bottom: 1px solid #e4ebf4; background: linear-gradient(130deg,#dff0ff 0%,#ebf6ff 60%,#f3fafc 100%); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+        .header h1 { font-size: 1.4rem; color: #12395f; }
+        .header p  { color: #35536d; font-size: 0.95rem; }
+        .nav { display: flex; gap: 8px; flex-wrap: wrap; }
+        .nav-btn { display: inline-block; text-decoration: none; background: #2b7fc5; color: #fff; border-radius: 8px; padding: 8px 12px; font-size: 0.88rem; font-weight: 700; transition: background 0.2s; white-space: nowrap; }
+        .nav-btn:hover { background: #1f689f; }
+        .hidden { display: none !important; }
+        /* Groups */
+        .section { padding: 20px; border-bottom: 1px solid #edf2f8; }
+        .section:last-child { border-bottom: 0; }
+        .summary { font-size: 0.93rem; color: #3d5a72; margin-bottom: 14px; }
+        .groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
+        .group-card { border: 1px solid #dbe7f3; border-left: 5px solid #2b7fc5; border-radius: 10px; background: #fbfdff; padding: 14px; }
+        .group-title { font-weight: 700; margin-bottom: 5px; color: #11365a; }
+        .group-meta  { font-size: 0.88rem; color: #3d5a72; margin-bottom: 8px; line-height: 1.4; }
+        .group-score { font-size: 0.88rem; font-weight: 700; margin-bottom: 10px; }
+        .group-score.high   { color: #166534; }
+        .group-score.medium { color: #a16207; }
+        .group-score.low    { color: #8d1f2d; }
+        .group-score.empty  { color: #5a7287; }
+        .start-btn { background: #2b7fc5; color: #fff; border: none; padding: 8px 14px; border-radius: 7px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.2s; font-family: 'Noto Sans Georgian', sans-serif; width: 100%; }
+        .start-btn:hover { background: #1f689f; }
+        /* Quiz */
+        .quiz-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 14px 20px; background: #f1f7ff; border-bottom: 1px solid #dde9f5; }
+        .badge { font-weight: 700; padding: 5px 12px; border-radius: 20px; font-size: 0.88rem; white-space: nowrap; }
+        .badge-group  { background: #e3f0ff; color: #1a5276; }
+        .badge-prog   { background: #e8f5e9; color: #1b5e20; }
+        .badge-score  { background: #fff3e0; color: #8d4a00; }
+        .back-btn { background: #64748b; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: background 0.2s; font-family: 'Noto Sans Georgian', sans-serif; }
+        .back-btn:hover { background: #475569; }
+        .quiz-body { padding: 20px; }
+        .q-type-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #7f8c8d; margin-bottom: 8px; }
+        .q-text { font-size: 1.08rem; font-weight: 600; line-height: 1.55; color: #12395f; margin-bottom: 16px; }
+        /* MCQ options */
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option { background: #f9f9f9; border: 2px solid #e0e0e0; padding: 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 0.98rem; }
+        .option:hover:not(.disabled) { background: #f1f7ff; border-color: #b3d4ff; }
+        .option.selected { background: #e3f0ff; border-color: #3498db; color: #1a5276; font-weight: 600; }
+        .option.correct  { background: #d4edda; border-color: #28a745; color: #155724; cursor: default; }
+        .option.wrong    { background: #f8d7da; border-color: #dc3545; color: #721c24; cursor: default; }
+        .option.missed   { background: #f9f9f9; border-color: #28a745; border-style: dashed; cursor: default; }
+        .option.disabled { cursor: default; opacity: 0.8; }
+        /* Fill */
+        .fill-body { font-size: 1.02rem; line-height: 2.8; color: #1a2a3a; }
+        .blank-wrap { display: inline-block; position: relative; margin: 0 2px; }
+        .blank-inp { display: inline-block; border: none; border-bottom: 2.5px solid #3498db; padding: 2px 6px; font-size: 0.98rem; font-family: 'Noto Sans Georgian', sans-serif; min-width: 80px; text-align: center; background: rgba(52,152,219,0.05); vertical-align: middle; transition: border-color 0.2s, background 0.2s; }
+        .blank-inp:focus { outline: none; border-bottom-color: #1a5276; }
+        .blank-inp.b-correct { border-bottom-color: #28a745; background: rgba(40,167,69,0.12); color: #155724; font-weight: 700; }
+        .blank-inp.b-wrong   { border-bottom-color: #dc3545; background: rgba(220,53,69,0.1); color: #721c24; }
+        .blank-inp:disabled  { cursor: not-allowed; }
+        .blank-hint { display: block; font-size: 0.74rem; font-weight: 700; text-align: center; margin-top: 2px; color: #28a745; }
+        .blank-hint.wrong-hint { color: #dc3545; }
+        /* Feedback */
+        .feedback { margin-top: 14px; padding: 11px 14px; border-radius: 8px; font-weight: 600; font-size: 0.93rem; line-height: 1.5; }
+        .feedback.correct { background: #d4edda; border-left: 4px solid #28a745; color: #155724; }
+        .feedback.wrong   { background: #f8d7da; border-left: 4px solid #dc3545; color: #721c24; }
+        .feedback.partial { background: #fff3cd; border-left: 4px solid #ffc107; color: #856404; }
+        /* Nav */
+        .quiz-nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px 20px; border-top: 1px solid #edf2f8; }
+        .quiz-nav button { background: #3498db; color: #fff; border: none; padding: 10px 20px; border-radius: 7px; font-size: 0.93rem; font-weight: 700; cursor: pointer; transition: background 0.2s; font-family: 'Noto Sans Georgian', sans-serif; }
+        .quiz-nav button:hover:not(:disabled) { background: #2980b9; }
+        .quiz-nav button:disabled { background: #ccc; cursor: not-allowed; }
+        #checkBtnG  { background: #f39c12; }
+        #checkBtnG:hover:not(:disabled) { background: #d68910; }
+        #finishBtn  { background: #27ae60; }
+        #finishBtn:hover:not(:disabled) { background: #1e8449; }
+        .result-box { margin: 16px 20px; padding: 14px 16px; background: #e8f4fd; border-left: 5px solid #2b7fc5; border-radius: 8px; font-weight: 700; color: #12395f; }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .header, .section, .quiz-body, .quiz-nav { padding: 14px; }
+            .q-text { font-size: 0.97rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="header-top">
+            <h1>ისტორია — 20-კითხვიანი ჯგუფები</h1>
+            <div class="nav">
+                <a class="nav-btn" href="history.html">სრული ტესტი</a>
+                <a class="nav-btn" href="history-answers.html">პასუხები</a>
+            </div>
+        </div>
+        <p>კითხვები დაყოფილია 20-კითხვიან ჯგუფებად. MCQ კითხვებში ვარიანტებიდან ამოარჩიეთ სწორი; Fill კითხვებში ჩაწერეთ ცარიელ ადგილებში.</p>
+    </div>
+
+    <div class="section" id="groupsSection">
+        <p class="summary" id="groupSummary">იტვირთება...</p>
+        <div class="groups-grid" id="groupsGrid"></div>
+    </div>
+
+    <div id="quizSection" class="hidden">
+        <div class="quiz-header">
+            <span class="badge badge-group" id="groupBadge">ჯგუფი 1</span>
+            <span class="badge badge-prog"  id="progBadge">კითხვა 1 / 20</span>
+            <span class="badge badge-score" id="scoreBadge">ქულა: 0 / 0</span>
+            <button class="back-btn" onclick="goBack()">← უკან</button>
+        </div>
+
+        <div class="quiz-body">
+            <div class="q-type-label" id="qTypeLbl">კითხვა</div>
+            <div class="q-text" id="qTextEl"></div>
+            <div class="options" id="optionsEl"></div>
+            <div id="fillEl"></div>
+            <div id="qFeedback" style="display:none;"></div>
+        </div>
+
+        <div class="result-box hidden" id="resultBox"></div>
+
+        <div class="quiz-nav">
+            <button onclick="prevQ()" id="prevBtnG">◄ წინა</button>
+            <div style="display:flex;gap:8px;">
+                <button id="checkBtnG" onclick="checkQ()">შემოწმება</button>
+                <button id="finishBtn" onclick="finishGroup()">დასრულება ✓</button>
+            </div>
+            <button onclick="nextQ()" id="nextBtnG">შემდეგი ►</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CHUNK = 20;
+    const STORE = 'historyGroupScore_';
+    let allQ = [], groups = [], activeGroup = 0, activeQs = [], curIdx = 0, answers = {}, finished = false;
+
+    fetch('history.json')
+        .then(r => r.json())
+        .then(data => { allQ = data; groups = chunk(data, CHUNK); buildGroups(); })
+        .catch(() => { document.getElementById('groupSummary').textContent = 'history.json ვერ ჩაიტვირთა.'; });
+
+    function chunk(arr, n) { const r=[]; for(let i=0;i<arr.length;i+=n) r.push(arr.slice(i,i+n)); return r; }
+    function shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+    function getScore(gi) { const v=localStorage.getItem(STORE+gi); return v===null?null:Number(v); }
+    function setScore(gi,sc) { localStorage.setItem(STORE+gi,String(sc)); }
+    function fmt(n) { return Number.isInteger(n)?String(n):n.toFixed(2); }
+    function isBlankOk(u,c) { const n=s=>s.trim().toLowerCase().replace(/\s+/g,' '); return n(u)===n(c); }
+
+    function buildGroups() {
+        const grid = document.getElementById('groupsGrid');
+        grid.innerHTML = '';
+        document.getElementById('groupSummary').textContent = `სულ კითხვები: ${allQ.length}. ჯგუფები: ${groups.length}.`;
+        groups.forEach((grp, gi) => {
+            const start = gi*CHUNK+1, end = start+grp.length-1;
+            const sc = getScore(gi);
+            let scClass='empty', scText='ჯერ არ გაქვთ გავლილი';
+            if (sc !== null) { const p=sc/grp.length; scClass=p>=0.75?'high':p>=0.4?'medium':'low'; scText=`ბოლო ქულა: ${fmt(sc)} / ${grp.length}`; }
+            const card = document.createElement('article');
+            card.className = 'group-card';
+            card.innerHTML = `<div class="group-title">ჯგუფი ${gi+1}</div><div class="group-meta">კითხვები: ${start}–${end} | რ-ბა: ${grp.length}</div><div class="group-score ${scClass}">${scText}</div>`;
+            const btn = document.createElement('button');
+            btn.className = 'start-btn'; btn.textContent = 'ამ ჯგუფის ტესტი';
+            btn.addEventListener('click', () => startGroup(gi));
+            card.appendChild(btn); grid.appendChild(card);
+        });
+    }
+
+    function startGroup(gi) {
+        activeGroup = gi;
+        activeQs = shuffle(groups[gi].map(q => {
+            if (q.type === 'mcq') {
+                const copy = Object.assign({}, q, { options: shuffle([...q.options]) });
+                return copy;
+            }
+            return q;
+        }));
+        curIdx = 0; answers = {}; finished = false;
+        document.getElementById('resultBox').classList.add('hidden');
+        document.getElementById('groupsSection').classList.add('hidden');
+        document.getElementById('quizSection').classList.remove('hidden');
+        renderQ();
+    }
+
+    function questionScore(q, st) {
+        if (!st || !st.checked) return 0;
+        if (q.type === 'fill') return st.score || 0;
+        const correctIdx = q.options.map((o,i)=>o.is_correct?i:-1).filter(i=>i!==-1);
+        const n = correctIdx.length;
+        if (!n) return 0;
+        const cSet = new Set(correctIdx);
+        const m = [...new Set(st.selected||[])].filter(i=>cSet.has(i)).length;
+        return m/n;
+    }
+
+    function calcScore() { return Object.entries(answers).reduce((s,[i,st])=>s+questionScore(activeQs[i],st),0); }
+
+    function renderQ() {
+        const q = activeQs[curIdx];
+        if (!answers[curIdx]) answers[curIdx] = q.type==='fill' ? {checked:false,inputs:[]} : {selected:[],checked:false};
+        const st = answers[curIdx];
+        const n = activeQs.length;
+        const sc = calcScore();
+
+        document.getElementById('groupBadge').textContent = `ჯგუფი ${activeGroup+1}`;
+        document.getElementById('progBadge').textContent  = `კითხვა ${curIdx+1} / ${n}`;
+        document.getElementById('scoreBadge').textContent = `ქულა: ${fmt(sc)} / ${n}`;
+
+        document.getElementById('optionsEl').innerHTML = '';
+        document.getElementById('fillEl').innerHTML = '';
+
+        if (q.type === 'fill') {
+            renderFillQ(q, st);
+        } else {
+            renderMCQQ(q, st);
+        }
+
+        // Feedback
+        const fb = document.getElementById('qFeedback');
+        if (st.checked) {
+            fb.style.display = 'block';
+            const s = questionScore(q, st);
+            if (q.type === 'fill') {
+                const total = q.blanks.length, okN = Math.round(s*total);
+                if (s===1) { fb.className='feedback correct'; fb.textContent='✓ ყველა სწორია!'; }
+                else if (s===0) { fb.className='feedback wrong'; fb.textContent=`✗ ყველა მცდარია. სწორი: ${q.blanks.join(' | ')}`; }
+                else { fb.className='feedback partial'; fb.textContent=`⚠ სწორია ${okN} / ${total}. სწორი: ${q.blanks.join(' | ')}`; }
+            } else {
+                if (s===1) { fb.className='feedback correct'; fb.textContent='✓ სწორია!'; }
+                else { fb.className='feedback wrong'; fb.innerHTML=`✗ არასწორია.<br>სწორი: <strong>${q.options.filter(o=>o.is_correct).map(o=>o.text).join(', ')}</strong>`; }
+            }
+        } else { fb.style.display = 'none'; }
+
+        document.getElementById('prevBtnG').disabled = curIdx===0;
+        document.getElementById('nextBtnG').disabled = curIdx===n-1;
+        document.getElementById('checkBtnG').disabled = st.checked||finished;
+        document.getElementById('finishBtn').disabled = finished;
+    }
+
+    function renderMCQQ(q, st) {
+        document.getElementById('qTypeLbl').textContent = '❓ კითხვა-პასუხი';
+        document.getElementById('qTextEl').textContent = `${curIdx+1}. ${q.question}`;
+        const optEl = document.getElementById('optionsEl');
+        const expectedCount = q.options.filter(o=>o.is_correct).length;
+        q.options.forEach((opt, index) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            div.textContent = opt.text;
+            if (st.checked) {
+                div.classList.add('disabled');
+                if (st.selected.includes(index)) div.classList.add(opt.is_correct?'correct':'wrong');
+                else if (opt.is_correct) div.classList.add('missed');
+            } else {
+                if (st.selected.includes(index)) div.classList.add('selected');
+                div.onclick = () => {
+                    if (finished || st.checked) return;
+                    const idx = st.selected.indexOf(index);
+                    if (idx > -1) st.selected.splice(idx,1);
+                    else { if(expectedCount===1) st.selected=[index]; else if(st.selected.length<expectedCount) st.selected.push(index); }
+                    if (st.selected.length===expectedCount && expectedCount>0) st.checked=true;
+                    renderQ();
+                };
+            }
+            optEl.appendChild(div);
+        });
+    }
+
+    function renderFillQ(q, st) {
+        document.getElementById('qTypeLbl').textContent = '✏️ შეავსე ცარიელი ადგილები';
+        document.getElementById('qTextEl').textContent = '';
+        const fillEl = document.getElementById('fillEl');
+        const fillDiv = document.createElement('div');
+        fillDiv.className = 'fill-body';
+        const numSpan = document.createElement('strong');
+        numSpan.textContent = `${curIdx+1}. `;
+        fillDiv.appendChild(numSpan);
+        const parts = q.template.split('___');
+        parts.forEach((part, i) => {
+            if (part) fillDiv.appendChild(document.createTextNode(part));
+            if (i < q.blanks.length) {
+                const bw = document.createElement('span');
+                bw.className = 'blank-wrap';
+                const inp = document.createElement('input');
+                inp.type='text'; inp.className='blank-inp';
+                inp.style.width = Math.max(80, q.blanks[i].length*14+20)+'px';
+                inp.placeholder='...';
+                if (st.inputs && st.inputs[i]!==undefined) inp.value=st.inputs[i];
+                if (st.checked) {
+                    inp.disabled=true;
+                    const ok=isBlankOk(inp.value,q.blanks[i]);
+                    inp.classList.add(ok?'b-correct':'b-wrong');
+                    const hint=document.createElement('span');
+                    hint.className=ok?'blank-hint':'blank-hint wrong-hint';
+                    hint.textContent=ok?'✓':q.blanks[i];
+                    bw.appendChild(inp); bw.appendChild(hint);
+                } else {
+                    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') checkQ(); });
+                    bw.appendChild(inp);
+                }
+                fillDiv.appendChild(bw);
+            }
+        });
+        fillEl.appendChild(fillDiv);
+        if (!st.checked) { const f=fillEl.querySelector('.blank-inp'); if(f) setTimeout(()=>f.focus(),50); }
+    }
+
+    function checkQ() {
+        if (finished) return;
+        const q = activeQs[curIdx];
+        const st = answers[curIdx];
+        if (st.checked) return;
+        if (q.type === 'fill') {
+            const inputs = document.querySelectorAll('#fillEl .blank-inp');
+            const vals = Array.from(inputs).map(i=>i.value.trim());
+            st.checked=true; st.inputs=vals;
+            st.score=vals.filter((v,i)=>isBlankOk(v,q.blanks[i])).length/q.blanks.length;
+        }
+        renderQ();
+    }
+
+    function prevQ() { if(curIdx>0){curIdx--;renderQ();} }
+    function nextQ() { if(curIdx<activeQs.length-1){curIdx++;renderQ();} }
+
+    function finishGroup() {
+        if (finished) return;
+        finished=true;
+        let score=0;
+        activeQs.forEach((_,i)=>{ score+=questionScore(activeQs[i],answers[i]); });
+        const correct = activeQs.filter((_,i)=>questionScore(activeQs[i],answers[i])===1).length;
+        setScore(activeGroup, score);
+        const rb = document.getElementById('resultBox');
+        rb.classList.remove('hidden');
+        rb.textContent = `შედეგი: ${fmt(score)} / ${activeQs.length} ქულა. სრულად სწორია ${correct} კითხვა.`;
+        document.getElementById('checkBtnG').disabled=true;
+        document.getElementById('finishBtn').disabled=true;
+        renderQ(); buildGroups();
+    }
+
+    function goBack() {
+        document.getElementById('quizSection').classList.add('hidden');
+        document.getElementById('groupsSection').classList.remove('hidden');
+        buildGroups();
+    }
+</script>
+</body>
+</html>

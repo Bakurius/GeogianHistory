@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ისტორია - ტესტი</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans Georgian', sans-serif; }
+        body { background-color: #f4f7f6; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .quiz-container { background: #fff; width: 100%; max-width: 750px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 30px; position: relative; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .progress { font-weight: 600; color: #555; }
+        .points { font-weight: 700; color: #1a5276; background: #e3f0ff; padding: 6px 12px; border-radius: 20px; min-width: 110px; text-align: center; }
+        .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .timer { font-weight: 700; color: #e74c3c; background: #fdf0ed; padding: 6px 12px; border-radius: 20px; min-width: 65px; text-align: center; }
+        .reset-btn { background: #e74c3c; padding: 6px 12px; font-size: 0.85rem; }
+        .reset-btn:hover { background: #c0392b; }
+        .switch-link { display: inline-block; background: #1f7b5c; color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; transition: background 0.2s; }
+        .switch-link:hover { background: #175b44; }
+        .type-pill { font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #7f8c8d; margin-bottom: 6px; }
+        .question-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; gap: 15px; }
+        .question { font-size: 1.2rem; font-weight: 600; line-height: 1.5; }
+        .expected-count { font-size: 0.9rem; background: #e3f0ff; color: #1a5276; padding: 4px 10px; border-radius: 6px; white-space: nowrap; font-weight: 700; }
+        /* MCQ */
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option { background: #f9f9f9; border: 2px solid #e0e0e0; padding: 15px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
+        .option:hover:not(.disabled) { background: #f1f7ff; border-color: #b3d4ff; }
+        .option.selected { background: #e3f0ff; border-color: #3498db; color: #1a5276; font-weight: 600; }
+        .option:focus-visible, button:focus-visible, .switch-link:focus-visible { outline: 3px solid rgba(52,152,219,0.35); outline-offset: 2px; }
+        .option.correct { background: #d4edda; border-color: #28a745; color: #155724; cursor: default; }
+        .option.wrong   { background: #f8d7da; border-color: #dc3545; color: #721c24; cursor: default; }
+        .option.missed  { background: #f9f9f9; border-color: #28a745; border-style: dashed; cursor: default; }
+        .option.disabled { cursor: default; opacity: 0.8; }
+        /* Fill */
+        .fill-body { font-size: 1.08rem; line-height: 2.8; color: #1a2a3a; }
+        .blank-wrap { display: inline-block; position: relative; margin: 0 2px; }
+        .blank-inp { display: inline-block; border: none; border-bottom: 2.5px solid #3498db; padding: 2px 6px; font-size: 1rem; font-family: 'Noto Sans Georgian', sans-serif; min-width: 90px; text-align: center; background: rgba(52,152,219,0.05); vertical-align: middle; transition: border-color 0.2s, background 0.2s; }
+        .blank-inp:focus { outline: none; border-bottom-color: #1a5276; }
+        .blank-inp.b-correct { border-bottom-color: #28a745; background: rgba(40,167,69,0.12); color: #155724; font-weight: 700; }
+        .blank-inp.b-wrong   { border-bottom-color: #dc3545; background: rgba(220,53,69,0.1); color: #721c24; }
+        .blank-inp:disabled  { cursor: not-allowed; }
+        .blank-hint { display: block; font-size: 0.76rem; font-weight: 700; text-align: center; margin-top: 2px; color: #28a745; }
+        .blank-hint.wrong-hint { color: #dc3545; }
+        .fill-feedback { margin-top: 14px; padding: 11px 14px; border-radius: 8px; font-weight: 600; font-size: 0.93rem; line-height: 1.5; }
+        .fill-feedback.correct { background: #d4edda; border-left: 4px solid #28a745; color: #155724; }
+        .fill-feedback.wrong   { background: #f8d7da; border-left: 4px solid #dc3545; color: #721c24; }
+        .fill-feedback.partial { background: #fff3cd; border-left: 4px solid #ffc107; color: #856404; }
+        .check-fill-btn { margin-top: 14px; background: #f39c12; }
+        .check-fill-btn:hover:not(:disabled) { background: #d68910; }
+        /* Nav */
+        .navigation { display: flex; justify-content: flex-end; margin-top: 28px; gap: 10px; }
+        button { background: #3498db; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.3s; font-family: 'Noto Sans Georgian', sans-serif; }
+        button:hover:not(:disabled) { background: #2980b9; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .submit-btn { background: #2ecc71; }
+        .submit-btn:hover:not(:disabled) { background: #27ae60; }
+        /* Results */
+        .results-container { display: none; text-align: center; }
+        .results-container h2 { font-size: 2rem; margin-bottom: 15px; color: #2c3e50; }
+        .results-details { font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
+        .results-details span { font-weight: 700; color: #e74c3c; }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 16px 0 18px; }
+        .result-card { background: #fff; border: 1px solid #deebf7; border-radius: 10px; padding: 12px; text-align: left; }
+        .result-card-label { display: block; font-size: 0.82rem; color: #5a768d; margin-bottom: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+        .result-card-value { font-size: 1.18rem; font-weight: 700; color: #12395f; }
+        .review-section { text-align: left; margin-top: 10px; }
+        .review-section h3 { color: #12395f; margin-bottom: 10px; }
+        .review-list { display: grid; gap: 10px; }
+        .review-item { border: 1px solid #deebf7; background: #fbfdff; border-radius: 10px; padding: 12px; }
+        .review-item-title { font-weight: 700; color: #12395f; margin-bottom: 6px; font-size: 0.95rem; line-height: 1.4; }
+        .review-item-meta { color: #36526d; font-size: 0.92rem; line-height: 1.5; }
+        .file-upload-container { text-align: center; margin-bottom: 20px; }
+        #fileInput { margin-top: 10px; }
+        @media (max-width: 768px) {
+            body { padding: 12px; align-items: flex-start; }
+            .quiz-container { padding: 20px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .header-actions { width: 100%; flex-wrap: wrap; }
+            .question-header { flex-direction: column; align-items: flex-start; }
+            .question { font-size: 1.1rem; }
+            .option { padding: 14px; font-size: 0.98rem; }
+            .navigation { justify-content: stretch; flex-wrap: wrap; }
+            .navigation button { flex: 1 1 calc(50% - 10px); }
+        }
+    </style>
+</head>
+<body>
+<div class="quiz-container" id="quizContainer">
+    <div id="loader" class="file-upload-container">
+        <h2>იტვირთება ტესტი...</h2>
+        <p>თუ ავტომატურად არ ჩაიტვირთა, ატვირთეთ JSON ფაილი ხელით:</p>
+        <input type="file" id="fileInput" accept=".json">
+    </div>
+
+    <div id="quizArea" style="display:none;">
+        <div class="header">
+            <div class="progress" id="progress">კითხვა 1 / x</div>
+            <div class="header-actions">
+                <div class="points" id="pointsBadge">ქულა: 0 / 0</div>
+                <a class="switch-link" href="history-tests.html">20-კითხვიანი ჯგუფები</a>
+                <a class="switch-link" href="history-answers.html">სწორი პასუხები</a>
+                <button class="reset-btn" onclick="resetMemoryAndRestart()">🔄 რესეტი</button>
+                <div class="timer" id="timer">00:00</div>
+            </div>
+        </div>
+
+        <div class="type-pill" id="typePill">კითხვა</div>
+        <div class="question-header">
+            <div class="question" id="questionText"></div>
+            <div class="expected-count" id="expectedCountBadge">აირჩიეთ 1</div>
+        </div>
+
+        <div class="options" id="optionsContainer"></div>
+        <div id="fillContainer"></div>
+
+        <div class="navigation">
+            <button id="prevBtn" onclick="prevQuestion()">წინა</button>
+            <button id="nextBtn" onclick="nextQuestion()">შემდეგი / გამოტოვება</button>
+            <button id="submitBtn" class="submit-btn" onclick="submitQuiz()" style="display:none;">დასრულება</button>
+        </div>
+    </div>
+
+    <div id="resultsArea" class="results-container">
+        <h2>ტესტი დასრულდა!</h2>
+        <div class="results-details">
+            სულ ქულა: <span id="scoreText">0</span> / <span id="totalText">0</span><br>
+            დახარჯული დრო: <span id="timeTakenText">00:00</span>
+        </div>
+        <div class="results-grid" id="resultsGrid"></div>
+        <div class="review-section">
+            <h3>შეცდომების მიმოხილვა</h3>
+            <div class="review-list" id="reviewList"></div>
+        </div>
+        <button onclick="resetMemoryAndRestart()" style="margin-top:20px;">თავიდან დაწყება</button>
+    </div>
+</div>
+<script>
+    let questions = [], currentQuestionIndex = 0, userAnswers = {}, startTime = null, timerInterval = null;
+
+    const loader = document.getElementById('loader');
+    const quizArea = document.getElementById('quizArea');
+    const typePill = document.getElementById('typePill');
+    const questionText = document.getElementById('questionText');
+    const expectedCountBadge = document.getElementById('expectedCountBadge');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const fillContainer = document.getElementById('fillContainer');
+    const progressEl = document.getElementById('progress');
+    const pointsBadge = document.getElementById('pointsBadge');
+    const timerEl = document.getElementById('timer');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const resultsArea = document.getElementById('resultsArea');
+    const resultsGrid = document.getElementById('resultsGrid');
+    const reviewList = document.getElementById('reviewList');
+
+    fetch('history.json')
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => { questions = data; initQuiz(); })
+        .catch(() => console.warn('CORS შეზღუდვა. ატვირთეთ ფაილი ხელით.'));
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            try { questions = JSON.parse(ev.target.result); initQuiz(); }
+            catch { alert('ფაილის ფორმატი არასწორია.'); }
+        };
+        reader.readAsText(file);
+    });
+
+    function initQuiz() {
+        loader.style.display = 'none';
+        quizArea.style.display = 'block';
+        const saved = localStorage.getItem('historyQuizState');
+        if (saved) {
+            const st = JSON.parse(saved);
+            questions = st.questions || questions;
+            userAnswers = st.userAnswers || {};
+            currentQuestionIndex = st.currentQuestionIndex || 0;
+            startTime = st.startTime || Date.now();
+        } else {
+            questions.forEach(q => {
+                if (q.type === 'mcq' && Array.isArray(q.options)) {
+                    for (let i = q.options.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [q.options[i], q.options[j]] = [q.options[j], q.options[i]];
+                    }
+                }
+            });
+            startTime = Date.now();
+            saveState();
+        }
+        startTimer();
+        renderQuestion();
+    }
+
+    function resetMemoryAndRestart() {
+        if (confirm('ნამდვილად გსურთ ტესტის შეწყვეტა და პროგრესის წაშლა?')) {
+            localStorage.removeItem('historyQuizState');
+            window.location.reload();
+        }
+    }
+
+    function saveState() {
+        try { localStorage.setItem('historyQuizState', JSON.stringify({ questions, userAnswers, currentQuestionIndex, startTime })); }
+        catch { console.warn('მეხსიერების ლიმიტი ამოიწურა'); }
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            const t = Math.floor((Date.now() - startTime) / 1000);
+            timerEl.innerText = `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+        }, 1000);
+    }
+
+    function isBlankCorrect(user, correct) {
+        const n = s => s.trim().toLowerCase().replace(/\s+/g,' ');
+        return n(user) === n(correct);
+    }
+
+    function questionScore(q, state) {
+        if (!state || !state.checked) return 0;
+        if (q.type === 'fill') return state.score || 0;
+        const correctIdx = q.options.map((o,i) => o.is_correct ? i : -1).filter(i => i !== -1);
+        const n = correctIdx.length;
+        if (!n) return 0;
+        const correctSet = new Set(correctIdx);
+        const m = [...new Set(state.selected || [])].filter(i => correctSet.has(i)).length;
+        return m / n;
+    }
+
+    function calculateCurrentScore() {
+        return questions.reduce((sum, q, i) => sum + questionScore(q, userAnswers[i]), 0);
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+        if (!userAnswers[currentQuestionIndex]) {
+            userAnswers[currentQuestionIndex] = q.type === 'fill' ? { checked: false, inputs: [] } : { selected: [], checked: false };
+        }
+        const qState = userAnswers[currentQuestionIndex];
+        const sc = calculateCurrentScore();
+        const fsc = Number.isInteger(sc) ? String(sc) : sc.toFixed(2);
+
+        progressEl.innerText = `კითხვა ${currentQuestionIndex + 1} / ${questions.length}`;
+        pointsBadge.innerText = `ქულა: ${fsc} / ${questions.length}`;
+
+        optionsContainer.innerHTML = '';
+        fillContainer.innerHTML = '';
+
+        if (q.type === 'fill') {
+            renderFill(q, qState);
+        } else {
+            renderMCQ(q, qState);
+        }
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        const isLast = currentQuestionIndex === questions.length - 1;
+        nextBtn.style.display = isLast ? 'none' : 'block';
+        submitBtn.style.display = isLast ? 'block' : 'none';
+        saveState();
+    }
+
+    function renderMCQ(q, qState) {
+        typePill.textContent = '❓ კითხვა-პასუხი';
+        questionText.innerText = q.question;
+        expectedCountBadge.style.display = 'inline-block';
+        const expectedCount = q.options.filter(o => o.is_correct).length;
+        expectedCountBadge.innerText = `აირჩიეთ ${expectedCount} სწორი პასუხი`;
+        optionsContainer.style.display = 'flex';
+
+        q.options.forEach((opt, index) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            div.setAttribute('role', 'button');
+            div.setAttribute('tabindex', '0');
+            div.innerText = opt.text;
+            if (qState.checked) {
+                div.classList.add('disabled');
+                if (qState.selected.includes(index)) {
+                    div.classList.add(opt.is_correct ? 'correct' : 'wrong');
+                } else if (opt.is_correct) {
+                    div.classList.add('missed');
+                }
+            } else {
+                if (qState.selected.includes(index)) div.classList.add('selected');
+                div.onclick = () => toggleOption(index, expectedCount);
+                div.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleOption(index, expectedCount); }
+                });
+            }
+            optionsContainer.appendChild(div);
+        });
+    }
+
+    function renderFill(q, qState) {
+        typePill.textContent = '✏️ შეავსე ცარიელი ადგილები';
+        questionText.innerText = '';
+        expectedCountBadge.style.display = 'none';
+        optionsContainer.style.display = 'none';
+
+        const wrap = document.createElement('div');
+        const fillDiv = document.createElement('div');
+        fillDiv.className = 'fill-body';
+
+        const numSpan = document.createElement('strong');
+        numSpan.textContent = `${currentQuestionIndex + 1}. `;
+        fillDiv.appendChild(numSpan);
+
+        const parts = q.template.split('___');
+        parts.forEach((part, i) => {
+            if (part) fillDiv.appendChild(document.createTextNode(part));
+            if (i < q.blanks.length) {
+                const bw = document.createElement('span');
+                bw.className = 'blank-wrap';
+                const inp = document.createElement('input');
+                inp.type = 'text';
+                inp.className = 'blank-inp';
+                inp.style.width = Math.max(80, q.blanks[i].length * 14 + 20) + 'px';
+                inp.placeholder = '...';
+                if (qState.inputs && qState.inputs[i] !== undefined) inp.value = qState.inputs[i];
+                if (qState.checked) {
+                    inp.disabled = true;
+                    const ok = isBlankCorrect(inp.value, q.blanks[i]);
+                    inp.classList.add(ok ? 'b-correct' : 'b-wrong');
+                    const hint = document.createElement('span');
+                    hint.className = ok ? 'blank-hint' : 'blank-hint wrong-hint';
+                    hint.textContent = ok ? '✓' : q.blanks[i];
+                    bw.appendChild(inp);
+                    bw.appendChild(hint);
+                } else {
+                    inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkFill(); });
+                    bw.appendChild(inp);
+                }
+                fillDiv.appendChild(bw);
+            }
+        });
+        wrap.appendChild(fillDiv);
+
+        if (qState.checked) {
+            const fb = document.createElement('div');
+            const total = q.blanks.length;
+            const okN = Math.round((qState.score || 0) * total);
+            if (qState.score === 1) {
+                fb.className = 'fill-feedback correct'; fb.textContent = '✓ ყველა სწორია!';
+            } else if (qState.score === 0) {
+                fb.className = 'fill-feedback wrong'; fb.textContent = `✗ ყველა მცდარია. სწორი: ${q.blanks.join(' | ')}`;
+            } else {
+                fb.className = 'fill-feedback partial'; fb.textContent = `⚠ სწორია ${okN} / ${total}. სწორი: ${q.blanks.join(' | ')}`;
+            }
+            wrap.appendChild(fb);
+        } else {
+            const btn = document.createElement('button');
+            btn.className = 'check-fill-btn';
+            btn.textContent = 'შემოწმება';
+            btn.onclick = checkFill;
+            wrap.appendChild(btn);
+        }
+        fillContainer.appendChild(wrap);
+        if (!qState.checked) {
+            const first = fillContainer.querySelector('.blank-inp');
+            if (first) setTimeout(() => first.focus(), 50);
+        }
+    }
+
+    function checkFill() {
+        const q = questions[currentQuestionIndex];
+        const qState = userAnswers[currentQuestionIndex];
+        if (qState.checked) return;
+        const inputs = fillContainer.querySelectorAll('.blank-inp');
+        const vals = Array.from(inputs).map(i => i.value.trim());
+        qState.checked = true;
+        qState.inputs = vals;
+        qState.score = vals.filter((v, i) => isBlankCorrect(v, q.blanks[i])).length / q.blanks.length;
+        renderQuestion();
+    }
+
+    function toggleOption(index, expectedCount) {
+        const qState = userAnswers[currentQuestionIndex];
+        if (qState.checked) return;
+        const idx = qState.selected.indexOf(index);
+        if (idx > -1) {
+            qState.selected.splice(idx, 1);
+        } else {
+            if (expectedCount === 1) qState.selected = [index];
+            else if (qState.selected.length < expectedCount) qState.selected.push(index);
+        }
+        if (qState.selected.length === expectedCount && expectedCount > 0) qState.checked = true;
+        renderQuestion();
+    }
+
+    function nextQuestion() { if (currentQuestionIndex < questions.length - 1) { currentQuestionIndex++; renderQuestion(); } }
+    function prevQuestion() { if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); } }
+
+    function submitQuiz() {
+        clearInterval(timerInterval);
+        let score = 0, fullyCorrect = 0, partial = 0, unanswered = 0;
+        const reviewItems = [];
+
+        questions.forEach((q, qi) => {
+            const state = userAnswers[qi];
+            const sc = questionScore(q, state);
+            score += sc;
+            if (sc === 1) fullyCorrect++;
+            else if (sc > 0) partial++;
+            else unanswered++;
+
+            if (sc < 1) {
+                if (q.type === 'fill') {
+                    reviewItems.push({
+                        title: '(შევსება) ' + q.template.replace(/___/g, '___').substring(0, 140),
+                        user: (state && state.inputs || []).join(' | ') || 'არცერთი',
+                        correct: q.blanks.join(' | '),
+                        score: sc
+                    });
+                } else {
+                    const uniqSel = [...new Set((state && state.selected) || [])];
+                    reviewItems.push({
+                        title: q.question,
+                        user: uniqSel.map(i => q.options[i] && q.options[i].text).filter(Boolean).join(', ') || 'არცერთი',
+                        correct: q.options.filter(o => o.is_correct).map(o => o.text).join(', '),
+                        score: sc
+                    });
+                }
+            }
+        });
+
+        quizArea.style.display = 'none';
+        resultsArea.style.display = 'block';
+
+        const fsc = Number.isInteger(score) ? String(score) : score.toFixed(2);
+        document.getElementById('scoreText').innerText = fsc;
+        document.getElementById('totalText').innerText = questions.length;
+        document.getElementById('timeTakenText').innerText = timerEl.innerText;
+
+        resultsGrid.innerHTML = '';
+        [['სულ ქულა', fsc], ['სრულად სწორი', String(fullyCorrect)], ['ნაწილობრივი', String(partial)], ['გამოტოვებული', String(unanswered)]].forEach(([label, value]) => {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            card.innerHTML = `<span class="result-card-label">${label}</span><div class="result-card-value">${value}</div>`;
+            resultsGrid.appendChild(card);
+        });
+
+        reviewList.innerHTML = '';
+        if (!reviewItems.length) {
+            reviewList.innerHTML = '<div class="review-item">ყველა კითხვაზე სრულად სწორი პასუხი გაქვთ! 🎉</div>';
+        } else {
+            reviewItems.slice(0, 15).forEach((item, i) => {
+                const el = document.createElement('article');
+                el.className = 'review-item';
+                el.innerHTML = `
+                    <div class="review-item-title">${i+1}. ${item.title.substring(0,200)}</div>
+                    <div class="review-item-meta">
+                        <div>ქულა: ${item.score.toFixed(2)}</div>
+                        <div>❌ თქვენი: ${item.user}</div>
+                        <div>✓ სწორი: ${item.correct}</div>
+                    </div>`;
+                reviewList.appendChild(el);
+            });
+        }
+        localStorage.removeItem('historyQuizState');
+    }
+</script>
+</body>
+</html>
